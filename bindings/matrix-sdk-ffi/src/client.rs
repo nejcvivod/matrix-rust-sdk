@@ -1424,8 +1424,8 @@ pub struct CreateRoomParameters {
     pub history_visibility_override: Option<RoomHistoryVisibility>,
     #[uniffi(default = None)]
     pub canonical_alias: Option<String>,
-    #[uniffi(default = None)]
-    pub is_federated: Option<bool>,
+    #[uniffi(default = true)]
+    pub is_federated: bool,
 }
 
 impl TryFrom<CreateRoomParameters> for create_room::v3::Request {
@@ -1493,18 +1493,16 @@ impl TryFrom<CreateRoomParameters> for create_room::v3::Request {
             }
         }
 
-        if let Some(is_federated) = value.is_federated {
-            let mut creation_content = create_room::v3::CreationContent::new();
-            creation_content.federate = is_federated;
-            match Raw::new(&creation_content) {
-                Ok(raw_creation) => {
-                    request.creation_content = Some(raw_creation);
-                }
-                Err(e) => {
-                    return Err(ClientError::Generic {
-                        msg: format!("Failed to serialize federated flag, error: {e}"),
-                    })
-                }
+        let mut creation_content = create_room::v3::CreationContent::new();
+        creation_content.federate = value.is_federated;
+        match Raw::new(&creation_content) {
+            Ok(raw_creation) => {
+                request.creation_content = Some(raw_creation);
+            }
+            Err(e) => {
+                return Err(ClientError::Generic {
+                    msg: format!("Failed to serialize creation_content, error: {e}"),
+                })
             }
         }
 
