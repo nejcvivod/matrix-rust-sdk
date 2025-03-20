@@ -14,13 +14,20 @@ let package = Package(
                  targets: ["MatrixRustSDK"]),
     ],
     targets: [
-        .binaryTarget(name: "MatrixSDKFFI", path: "./generated/MatrixSDKFFI.xcframework"),
-        .target(
-            name: "MatrixRustSDK",
-            dependencies: [
-                .target(name: "MatrixSDKFFI")
-            ],
-            path: "generated/swift"
-        )
+        .target(name: "MatrixRustSDK",
+                path: "generated/swift",
+                swiftSettings: [
+                    .unsafeFlags(["-I", "./generated/matrix_sdk_ffi"])
+                ]),
+        .testTarget(name: "MatrixRustSDKTests",
+                    dependencies: ["MatrixRustSDK"],
+                    swiftSettings: [
+                        .unsafeFlags(["-I", "./generated/matrix_sdk_ffi"])
+                    ],
+                    linkerSettings: [
+                        .linkedLibrary("matrix_sdk_ffi", .when(platforms: [.macOS])),
+                        .linkedLibrary("matrix_sdk_ffiFFI", .when(platforms: [.linux])),
+                        .unsafeFlags(["-L./generated/matrix_sdk_ffi"])
+                    ])
     ]
 )
